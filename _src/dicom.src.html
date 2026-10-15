@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Send a case · Vimics</title>
+<meta name="description" content="Send a CT (DICOM) and case details to Vimics for patient-specific implants, surgical guides and surgical planning.">
+<meta name="theme-color" content="#26497F">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+
+<header class="ust">
+  <div class="kolon">
+    <a class="logo-link" href="../" aria-label="Vimics home">{{LOGO}}</a>
+    <nav class="nav" aria-label="Main">
+      <a href="../#portfolio">Portfolio</a>
+      <a href="../#workflow">How a case runs</a>
+      <a href="../#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="kolon">
+  <div class="dicom-ust">
+    <div class="hero-metin">
+      <span class="etiket">Send your DICOM</span>
+      <h1>Send a case</h1>
+      <p class="lead">Upload the CT and tell us about the patient. A Vimics engineer reviews the data and replies by email.</p>
+    </div>
+    <div class="qr" style="border: 1px solid var(--kenarlik);">
+      <img src="../assets/qr/vimics-dicom-qr.svg" width="200" height="200" alt="QR code for this page, vimics.vet/dicom">
+      <span>vimics.vet/dicom</span>
+    </div>
+  </div>
+
+  <ol class="adimlar">
+    <li>
+      <span class="no">01</span>
+      <div class="icerik">
+        <h3>Export the CT as DICOM</h3>
+        <p>Export the complete series, all slices, from your CT workstation or PACS. A ZIP file is fine. You can remove the owner's name before export.</p>
+      </div>
+    </li>
+    <li>
+      <span class="no">02</span>
+      <div class="icerik">
+        <h3>Upload the files</h3>
+        <p>The upload page is a Vimics folder on Microsoft OneDrive. You do not need an account.</p>
+        <div class="eylemler">
+          <a class="btn btn-birincil" id="yukle" href="{{UPLOAD_URL}}" rel="noopener">Upload DICOM files</a>
+        </div>
+        <p class="not" id="yukle-not">Please name the ZIP file as <span class="mono">Clinic_Patient_Species</span>, for example <span class="mono">AnkaraVet_Max_Dog.zip</span>.</p>
+      </div>
+    </li>
+    <li>
+      <span class="no">03</span>
+      <div class="icerik">
+        <h3>Send the case details</h3>
+        <p>Email the details below to <a href="mailto:info@vimics.vet">info@vimics.vet</a>, using the same name as the ZIP file in the subject line.</p>
+        <pre class="sablon" id="sablon">Clinic:
+Surgeon:
+Patient (species, breed, age, weight):
+Region and indication:
+What you need (guide, implant, planning, model):
+Planned surgery date, if known:</pre>
+        <div class="eylemler">
+          <a class="btn btn-birincil" id="eposta" href="mailto:info@vimics.vet">Write the email</a>
+          <button class="btn btn-ikincil" id="kopyala" type="button">Copy the template</button>
+        </div>
+        <p class="not" id="kopya-durum" aria-live="polite"></p>
+      </div>
+    </li>
+    <li>
+      <span class="no">04</span>
+      <div class="icerik">
+        <h3>We get back to you</h3>
+        <p>We review the CT and reply by email with our questions or a proposal for the case.</p>
+      </div>
+    </li>
+  </ol>
+</main>
+
+<footer class="alt">
+  <div class="kolon">
+    <div style="display: grid; gap: var(--b4); align-content: start;">
+      <a class="logo-link" href="../" aria-label="Vimics home">{{LOGO}}</a>
+    </div>
+    <div>
+      <h2>Contact</h2>
+      <address><a href="mailto:info@vimics.vet">info@vimics.vet</a></address>
+    </div>
+    <div>
+      <h2>Address</h2>
+      <address>Mustafa Kemal Mah. Dumlupınar Bul. No:280/G İç Kapı No:1260<br>06510 Çankaya / Ankara, Türkiye</address>
+    </div>
+    <div class="kunye">
+      <span>© 2026 Vimics</span>
+      <span>VETERINARY INNOVATIVE ENGINEERING MÜHENDİSLİK VETERİNERLİK SANAYİ VE TİCARET ANONİM ŞİRKETİ</span>
+      <span>MERSİS 0925123067800001</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var sablon = document.getElementById("sablon").textContent;
+  var eposta = document.getElementById("eposta");
+  eposta.href = "mailto:info@vimics.vet?subject=" + encodeURIComponent("New case: Clinic_Patient_Species") + "&body=" + encodeURIComponent(sablon + "\n\nDICOM uploaded as: ");
+
+  var yukle = document.getElementById("yukle");
+  if (!/^https:\/\//.test(yukle.getAttribute("href"))) {
+    yukle.setAttribute("aria-disabled", "true");
+    yukle.removeAttribute("href");
+    yukle.textContent = "Upload page opens soon";
+    var not = document.getElementById("yukle-not");
+    not.classList.add("bekliyor");
+    not.textContent = "The upload page is being set up. Until then, email info@vimics.vet and we will send you an upload link.";
+  }
+
+  var durum = document.getElementById("kopya-durum");
+  document.getElementById("kopyala").addEventListener("click", function () {
+    var ok = function () { durum.textContent = "Template copied."; };
+    var secim = function () {
+      var r = document.createRange(); r.selectNodeContents(document.getElementById("sablon"));
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      durum.textContent = "Template selected. Copy it with Ctrl+C or Cmd+C.";
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(sablon).then(ok, secim);
+    } else { secim(); }
+  });
+})();
+</script>
+</body>
+</html>
