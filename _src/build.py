@@ -3,7 +3,7 @@
 Run:  python3 -I web/_src/build.py [preview_dir]
 - Inlines the logo and Material Symbols icons, writes index.html, dicom/index.html, vicage/index.html.
 - Upload link for /dicom comes from UPLOAD_URL below (OneDrive "Request files" link).
-- ViCage size table, scale drawing and order rows all come from VICAGE_SIZES.
+- ViCage size table, size matrix labels and order rows all come from VICAGE_SIZES.
 - With preview_dir, also writes a copy without the document skeleton for the artifact preview.
 """
 import os, re, shutil, sys
@@ -39,32 +39,29 @@ def icon(name):
     d = re.search(r'<path d="([^"]+)"', s).group(1)
     return f'<svg class="ic" viewBox="0 -960 960 960" aria-hidden="true"><path d="{d}"/></svg>'
 
-def scale_drawing():
-    """Top view and side view of every size, all drawn at 9 px per mm."""
-    s, col, top = 9, 168, 40
-    groups = []
-    for L, W, H, _ in VICAGE_SIZES:
-        if not groups or groups[-1][0] != (L, W):
-            groups.append(((L, W), []))
-        groups[-1][1].append(H)
-    out = []
-    for i, ((L, W), hs) in enumerate(groups):
-        cx = 24 + i * col + col / 2
-        out.append(f'<text class="yazi" x="{cx}" y="22" text-anchor="middle">{L}×{W}</text>')
-        out.append(f'<rect class="kutu" x="{cx - L * s / 2:.1f}" y="{top + (11 - W) * s / 2:.1f}" width="{L * s}" height="{W * s}"/>')
-        y0 = top + 11 * s + 36
-        for j, H in enumerate(hs):
-            yb = y0 + j * 96 + 7.5 * s
-            out.append(f'<rect class="yan" x="{cx - L * s / 2:.1f}" y="{yb - H * s:.1f}" width="{L * s}" height="{H * s:.1f}"/>')
-            out.append(f'<text class="yazi-k" x="{cx}" y="{yb + 18:.1f}" text-anchor="middle">{fmt(H)} mm</text>')
-    h = top + 11 * s + 36 + 96 + 7.5 * s + 52
-    w = 48 + len(groups) * col
-    y_ruler = h - 8
-    out.append(f'<line class="cizgi" x1="24" y1="{y_ruler}" x2="{24 + 10 * s}" y2="{y_ruler}"/>')
-    out.append(f'<line class="cizgi" x1="24" y1="{y_ruler - 5}" x2="24" y2="{y_ruler + 1}"/><line class="cizgi" x1="{24 + 10 * s}" y1="{y_ruler - 5}" x2="{24 + 10 * s}" y2="{y_ruler + 1}"/>')
-    out.append(f'<text class="yazi-k" x="{24 + 10 * s + 8}" y="{y_ruler + 4}">10 mm</text>')
-    return (f'<svg viewBox="0 0 {w} {h + 6}" role="img" aria-label="ViCage sizes drawn to scale: top view of each footprint and side view of each height">'
-            + "".join(out) + "</svg>")
+# Size matrix render (ViCage/Gorseller/final/MATRIS_*_5444x2480.png): orthographic top view,
+# 92 mm wide frame, 5444 x 2480 px. Columns sit at x = -38, -19, 0, 19, 38 mm, the lower
+# height of each footprint at y = +8 mm (top row) and the higher one at y = -8 mm.
+MATRIS_W_MM = 92.0
+MATRIS_H_MM = MATRIS_W_MM * 2480 / 5444
+
+def matrix_figure():
+    labels, foots = [], []
+    for i, (L, W, H, _) in enumerate(VICAGE_SIZES):
+        col, row = i // 2, i % 2
+        sx, sy = -38 + 19 * col, (8 if row == 0 else -8)
+        x = (sx + MATRIS_W_MM / 2) / MATRIS_W_MM * 100
+        y_center = MATRIS_H_MM / 2 - sy
+        y = (y_center + W / 2 + 1.0) / MATRIS_H_MM * 100
+        labels.append(f'<span class="et" style="left:{x:.2f}%;top:{y:.2f}%"><b>{fmt(H)} mm</b>{vc_code(L, W, H)}</span>')
+        if row == 0:
+            foots.append(f'<span class="ayak" style="left:{x:.2f}%">{L}×{W}</span>')
+    alt = "All ten ViCage sizes seen from above at one scale: five footprints in columns, two heights per footprint"
+    return ('<div class="matris-sar"><figure class="matris"><div class="matris-gorsel">'
+            f'<img class="tema-acik" src="../assets/img/vicage/matris-acik.webp" width="5444" height="2480" loading="lazy" alt="{alt}">'
+            f'<img class="tema-koyu" src="../assets/img/vicage/matris-koyu.webp" width="5444" height="2480" loading="lazy" alt="{alt}">'
+            + "".join(labels) + '</div><div class="ayaklar">' + "".join(foots) + '</div>'
+            '<figcaption>Top view, all sizes at one scale. Footprint in mm, length × width.</figcaption></figure></div>')
 
 def size_rows(order=False):
     rows, prev = [], None
@@ -88,7 +85,7 @@ def size_rows(order=False):
 def render(src):
     s = open(os.path.join(SRC, src), encoding="utf-8").read()
     s = s.replace("{{LOGO}}", logo).replace("{{UPLOAD_URL}}", UPLOAD_URL or "#upload-pending")
-    s = s.replace("{{VC_OLCEK}}", scale_drawing()).replace("{{VC_TABLO}}", size_rows()).replace("{{VC_SIPARIS}}", size_rows(order=True))
+    s = s.replace("{{VC_MATRIS}}", matrix_figure()).replace("{{VC_TABLO}}", size_rows()).replace("{{VC_SIPARIS}}", size_rows(order=True))
     s = s.replace("{{VC_ADET}}", str(len(VICAGE_SIZES)))
     return re.sub(r"\{\{I:([a-z_]+)\}\}", lambda m: icon(m.group(1)), s)
 
