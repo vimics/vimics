@@ -13,6 +13,10 @@ import os, re, shutil, sys
 
 UPLOAD_URL = "https://veterinaryinnovative-my.sharepoint.com/:f:/g/personal/onur_vimics_vet/IgCo2K8lpHwgSoMGd9iU_6-0AYI3-HqiHVtY8swIqAfh2CU"  # OneDrive "Request files" link (upload only), verified 2026-10-26
 
+# Google Search Console "HTML tag" verification token (content="..." value only). Empty: no tag.
+# A DNS TXT verification at GoDaddy (Domain property) does not need this.
+GSC_TOKEN = ""
+
 # VCage set: (length mm, width mm, nominal height mm, overall height over ridges mm).
 # Footprint and nominal height follow the production file names; overall height is the
 # bounding box of the production STLs in ~/Downloads/Production STLs (measured 2026-10-15).
@@ -124,6 +128,7 @@ def render(src):
     s = s.replace("{{LOGO}}", logo).replace("{{UPLOAD_URL}}", UPLOAD_URL or "#upload-pending")
     s = s.replace("{{VC_MATRIS}}", matrix_figure()).replace("{{VC_TABLO}}", size_rows()).replace("{{VC_SIPARIS}}", size_rows(order=True))
     s = s.replace("{{VC_ADET}}", str(len(VCAGE_SIZES)))
+    s = s.replace("{{GSC}}\n", f'<meta name="google-site-verification" content="{GSC_TOKEN}">\n' if GSC_TOKEN else "")
     s = re.sub(r"\{\{FOOTER:([./]*)\}\}", lambda m: footer(m.group(1)), s)
     return re.sub(r"\{\{I:([a-z_]+)\}\}", lambda m: icon(m.group(1)), s)
 
