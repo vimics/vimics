@@ -8,7 +8,7 @@ Run:  python3 -I web/_src/build.py [preview_dir]
 """
 import os, re, shutil, sys
 
-UPLOAD_URL = ""  # paste the OneDrive "Request files" link here, then rebuild
+UPLOAD_URL = "https://veterinaryinnovative-my.sharepoint.com/:f:/g/personal/onur_vimics_vet/IgCo2K8lpHwgSoMGd9iU_6-0AYI3-HqiHVtY8swIqAfh2CU"  # OneDrive "Request files" link (upload only), verified 2026-10-26
 
 # ViCage set: (length mm, width mm, nominal height mm, overall height over ridges mm).
 # Footprint and nominal height follow the production file names; overall height is the
