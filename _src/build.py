@@ -123,6 +123,13 @@ def footer(p):
   </div>
 </footer>'''
 
+def favicon(p):
+    # PNG/ICO files come from araclar/favicon-uret.swift (run after build.py when the monogram changes).
+    return (f'<link rel="icon" href="{p}favicon.ico" sizes="48x48">\n'
+            f'<link rel="icon" href="{p}assets/img/favicon.svg" type="image/svg+xml">\n'
+            f'<link rel="icon" href="{p}assets/img/favicon-192.png" type="image/png" sizes="192x192">\n'
+            f'<link rel="apple-touch-icon" href="{p}assets/img/apple-touch-icon.png">')
+
 def render(src):
     s = open(os.path.join(SRC, src), encoding="utf-8").read()
     s = s.replace("{{LOGO}}", logo).replace("{{UPLOAD_URL}}", UPLOAD_URL or "#upload-pending")
@@ -130,6 +137,7 @@ def render(src):
     s = s.replace("{{VC_ADET}}", str(len(VCAGE_SIZES)))
     s = s.replace("{{GSC}}\n", f'<meta name="google-site-verification" content="{GSC_TOKEN}">\n' if GSC_TOKEN else "")
     s = re.sub(r"\{\{FOOTER:([./]*)\}\}", lambda m: footer(m.group(1)), s)
+    s = re.sub(r"\{\{FAVICON:([./]*)\}\}", lambda m: favicon(m.group(1)), s)
     return re.sub(r"\{\{I:([a-z_]+)\}\}", lambda m: icon(m.group(1)), s)
 
 pages = {
@@ -146,6 +154,7 @@ for path, html in pages.items():
     open(os.path.join(WEB, path), "w", encoding="utf-8").write(html)
 
 mono = open(os.path.join(SRC, "parts", "monogram.svg"), encoding="utf-8").read().replace("var(--logo-monogram)", "#26497F")
+mono = mono.replace('viewBox="0 0 2000 1724"', 'viewBox="-100 -238 2200 2200"')  # square canvas: Google ignores non-square favicons
 open(os.path.join(WEB, "assets", "img", "favicon.svg"), "w", encoding="utf-8").write(mono)
 open(os.path.join(WEB, "CNAME"), "w").write("vimics.vet\n")
 
